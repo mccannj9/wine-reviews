@@ -110,8 +110,11 @@ class WineReviewPage(object):
         self.flags: List[int] = []
 
     def get_value_from_parsed_info(self, key) -> str:
-        return self.scraped_info[key]
-    
+        try:
+            return self.scraped_info[key]
+        except KeyError:
+            return None
+
     @property
     def date_published(self) -> str:
         return self.get_value_from_parsed_info('date_published')
@@ -205,8 +208,6 @@ class WineReviewPage(object):
             .contents[0]
         )
 
-        print(unwieldy_json)
-
         wieldy_json = (
             pandas
             .json_normalize(unwieldy_json)
@@ -218,7 +219,6 @@ class WineReviewPage(object):
             if k in self.scraped_info:
                 self.flags.append(4)
             self.scraped_info[k] = v
-            print(f"appended {k}, {v}")
 
     def _get_date_published(self) -> None:
         self.scraped_info['date_published'] = (
