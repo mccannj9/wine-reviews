@@ -81,8 +81,14 @@ class WineReviewScraper(object):
         
         return pandas.DataFrame(review_cards_data)
     
-    def parse_review_page(self):
-        pass
+    def parse_review_page(self) -> pandas.DataFrame:
+        review_cards = self.parse_all_review_cards()
+        wine_review_pages = review_cards.apply(
+            lambda x: WineReviewPage(x.link, x), axis=1
+        )
+        return pandas.DataFrame(
+            [x._get_properties_and_values() for x in wine_review_pages]
+        )
 
 
 class WineReviewPage(object):
@@ -94,6 +100,7 @@ class WineReviewPage(object):
 
         self.link = link
         self.card = card
+        self.flags: List[int] = []
 
         with requests.Session() as sesh:
             response = sesh.get(self.link, headers=HEADERS)
@@ -107,7 +114,6 @@ class WineReviewPage(object):
         self._get_date_published()
         self._get_vintage_from_card_title()
 
-        self.flags: List[int] = []
 
     def get_value_from_parsed_info(self, key) -> str:
         try:
@@ -237,6 +243,8 @@ class WineReviewPage(object):
         else:
             self.flags.append(2)
             self.scraped_info['vintage'] = -9999
+            return
+
         self.scraped_info['vintage'] = int(yearlike_in_title[0])
 
     @classmethod
