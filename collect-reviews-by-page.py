@@ -57,12 +57,19 @@ if __name__ == "__main__":
             """
         )
 
-    data = pandas.DataFrame()
+    # data = pandas.DataFrame()
     for page_num in range(args.pages_start, args.pages_end + 1):
         print(f"Scraping page number {page_num}")
         scraper = WineReviewScraper(page_num, 5)
-        data = data.append(scraper.parse_review_pages())
+        # data = data.append(scraper.parse_review_pages())
     
-    data.to_sql(
-        WineReviews.__tablename__, con=engine, if_exists='append', index=False
-    )
+        (
+            scraper
+            .parse_review_pages()
+            .to_sql(
+                WineReviews.__tablename__,
+                con=engine,
+                if_exists='append',
+                index=False
+            )
+        )
