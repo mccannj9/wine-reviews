@@ -12,6 +12,9 @@ import requests
 from bs4 import BeautifulSoup
 
 import pandas
+from tqdm import tqdm, tqdm_pandas
+
+tqdm.pandas()
 
 HEADERS = {
     "user-agent": (
@@ -76,7 +79,7 @@ class WineReviewScraper(object):
     
     def parse_review_page(self) -> pandas.DataFrame:
         review_cards = self.parse_all_review_cards()
-        wine_review_pages = review_cards.apply(
+        wine_review_pages = review_cards.progress_apply(
             lambda card: WineReviewPage(card), axis=1
         )
         return pandas.DataFrame(
@@ -85,21 +88,21 @@ class WineReviewScraper(object):
 
 
 class WineReviewPage(object):
-    def __init__(
-        self,
-        link: str,
-        card: pandas.Series
-    ) -> None:
-
-        self.link = link
+    def __init__(self, card: pandas.Series) -> None:
         self.card = card
         self.flags: List[int] = []
+        # initialize scraped data from page, add link
+        self.scraped_info: Dict[str, str] = {}
+        # add info from card to scraped data
+        self.scraped_info['link'] = self.card.link
+        self.scraped_info['title'] = self.card.title
 
         with requests.Session() as sesh:
-            response = sesh.get(self.card.link, headers=HEADERS)
+            self.response = sesh.get(self.link, headers=HEADERS)
 
-        self.content = BeautifulSoup(response.content, 'html.parser')
-        self.scraped_info: Dict[str, str] = {}
+        self.content = BeautifulSoup(self.response.content, 'html.parser')
+
+        # add info scraped from wine review page
         self._get_primary_info()
         self._get_secondary_info()
         # call after, just in case there is weird stuff in this dictionary already
@@ -113,6 +116,14 @@ class WineReviewPage(object):
             return self.scraped_info[key]
         except KeyError:
             return None
+
+    @property
+    def link(self) -> str:
+        return self.get_value_from_parsed_info('link')
+
+    @property
+    def title(self) -> str:
+        return self.get_value_from_parsed_info('title')
 
     @property
     def date_published(self) -> str:
@@ -242,9 +253,9 @@ class WineReviewPage(object):
 
     @classmethod
     def _get_all_properties(cls):
-        return [
+        return sorted([
             k for k, v in vars(cls).items() if isinstance(v, property)
-        ]
+        ])
 
     def _get_properties_and_values(self):
         return {

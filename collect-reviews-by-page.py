@@ -2,7 +2,6 @@
 
 import argparse
 import sys
-import tqdm
 
 import pandas
 
