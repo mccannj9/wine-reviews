@@ -140,7 +140,7 @@ class WineReviewPage(object):
     def vintage(self) -> Optional[int]:
         try:
             return int(self.get_value_from_parsed_info('vintage'))
-        except ValueError:
+        except (TypeError, ValueError):
             return None
 
     @property
@@ -190,9 +190,13 @@ class WineReviewPage(object):
     @property
     def bottle_size(self) -> Optional[int]:
         try:
-            return float(
-                self.get_value_from_parsed_info('Bottle Size').split(" ")[0]
-            )
+            value, units = self.get_value_from_parsed_info('Bottle Size').split(" ")
+            
+            if units == 'L':
+                return float(value) * 1000
+            else:
+                return float(value)
+
         except ValueError:
             return None
 
@@ -273,7 +277,7 @@ class WineReviewPage(object):
                 self.flags.append(1)                
         else:
             self.flags.append(2)
-            self.scraped_info['vintage'] = -9999
+            self.scraped_info['vintage'] = None
             return
 
         self.scraped_info['vintage'] = int(yearlike_in_title[0])

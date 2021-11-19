@@ -14,6 +14,9 @@ from wine_reviews.data_models import wine_reviews_base, WineReviews
 script_directory_path = os.path.dirname(os.path.abspath(__file__))
 default_sqlite_path = f"{script_directory_path}/wine-reviews.db"
 
+# failed on 127 bc of connection problem (maybe too many requests)
+last_page_number_crawled = 126
+
 if __name__ == "__main__":
 
     desc = """
