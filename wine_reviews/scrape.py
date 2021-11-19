@@ -31,13 +31,6 @@ card_objects = {
 # really just a 4 digit number finder
 year_finder = re.compile(r"\d{4}")
 
-def parse_review_card(review_item):
-    finder = review_item.find
-    link = [finder("a", {'class': 'review-listing'})['href']]
-    return link + [
-        finder(*card_objects[obj]).get_text() for obj in card_objects
-    ]
-
 flags = {
     1: "Number of year-like values in title > 1, i.e. multiple possible vintages, taking first one",
     2: "Number of year-like values in title = 0, i.e. no vintage found",
@@ -84,7 +77,7 @@ class WineReviewScraper(object):
     def parse_review_page(self) -> pandas.DataFrame:
         review_cards = self.parse_all_review_cards()
         wine_review_pages = review_cards.apply(
-            lambda x: WineReviewPage(x.link, x), axis=1
+            lambda card: WineReviewPage(card), axis=1
         )
         return pandas.DataFrame(
             [x._get_properties_and_values() for x in wine_review_pages]
@@ -103,7 +96,7 @@ class WineReviewPage(object):
         self.flags: List[int] = []
 
         with requests.Session() as sesh:
-            response = sesh.get(self.link, headers=HEADERS)
+            response = sesh.get(self.card.link, headers=HEADERS)
 
         self.content = BeautifulSoup(response.content, 'html.parser')
         self.scraped_info: Dict[str, str] = {}
@@ -282,30 +275,3 @@ class AttributeRetriever(object):
     @abc.abstractmethod
     def retriever(self):
         raise NotImplementedError("Must define the retriever method")
-
-
-def load_test_data():
-    datapath = os.path.dirname(os.path.abspath(__file__)) + "/data"
-    review_cards = []
-    for review_page in glob.glob(f"{datapath}/*all_reviews.html"):
-        html = BeautifulSoup(
-            open(review_page, "r").read(), "html.parser"
-        )
-        review_cards += html.find_all("li", {"class": "review-item"})
-
-    reviews = []
-    for x, y in itertools.product(range(1, 4), range(1,21)):
-        reviews.append(
-            BeautifulSoup(open(f"{datapath}/page_{x}_review_{y}.html", "r").read(), "html.parser")
-        )
-
-    review_cards_parsed = [
-        parse_review_card(rv_card) for rv_card in review_cards
-    ]
-
-    return list(zip(review_cards_parsed, reviews))
-
-
-if __name__ == "__main__":
-    print("hello, I am wine review parser")
-    cards = load_test_data()
