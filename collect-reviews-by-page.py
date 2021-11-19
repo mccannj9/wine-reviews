@@ -8,7 +8,7 @@ import pandas
 
 from sqlalchemy import create_engine
 
-from wine_reviews.scrape import WineReviewScraper
+from wine_reviews.scrape_tools import WineReviewScraper
 from wine_reviews.data_models import wine_reviews_base, WineReviews
 
 script_directory_path = os.path.dirname(os.path.abspath(__file__))
