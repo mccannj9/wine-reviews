@@ -60,16 +60,19 @@ if __name__ == "__main__":
     # data = pandas.DataFrame()
     for page_num in range(args.pages_start, args.pages_end + 1):
         print(f"Scraping page number {page_num}")
-        scraper = WineReviewScraper(page_num, 5)
-        # data = data.append(scraper.parse_review_pages())
-    
-        (
-            scraper
+        scraped_data = (
+            WineReviewScraper(page_num, 5)
             .parse_review_pages()
-            .to_sql(
-                WineReviews.__tablename__,
-                con=engine,
-                if_exists='append',
-                index=False
-            )
         )
+
+        # sometimes a scraped page has no entries
+        if not scraped_data.empty:
+            (
+                scraped_data
+                .to_sql(
+                    WineReviews.__tablename__,
+                    con=engine,
+                    if_exists='append',
+                    index=False
+                )
+            )

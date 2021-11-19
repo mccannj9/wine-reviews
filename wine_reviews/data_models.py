@@ -1,6 +1,4 @@
 from sqlalchemy.orm import declarative_base
-from sqlalchemy.sql.expression import null
-from sqlalchemy.sql.operators import nulls_last_op
 
 from sqlalchemy import (
     Column,

@@ -3,12 +3,12 @@ import hashlib
 import json
 import re
 
-from typing import Tuple, Dict, Optional, List, Union
-
-import requests
-from bs4 import BeautifulSoup
+from typing import Any, Tuple, Dict, Optional, List
 
 import pandas
+import requests
+
+from bs4 import BeautifulSoup
 from tqdm import tqdm
 
 tqdm.pandas()
@@ -113,26 +113,26 @@ class WineReviewPage(object):
         self._get_vintage_from_card_title()
 
 
-    def get_value_from_parsed_info(self, key) -> str:
+    def get_value_from_parsed_info(self, key) -> Optional[str]:
         try:
             return self.scraped_info[key]
         except KeyError:
             return None
 
     @property
-    def sha512_hash(self) -> str:
+    def sha512_hash(self) -> Optional[str]:
         return self.get_value_from_parsed_info('sha512_hash').digest()
 
     @property
-    def link(self) -> str:
+    def link(self) -> Optional[str]:
         return self.get_value_from_parsed_info('link')
 
     @property
-    def title(self) -> str:
+    def title(self) -> Optional[str]:
         return self.get_value_from_parsed_info('title')
 
     @property
-    def date_published(self) -> str:
+    def date_published(self) -> Optional[str]:
         return self.get_value_from_parsed_info('date_published')
     
     # change this to content being extracted to scraped info
@@ -151,7 +151,7 @@ class WineReviewPage(object):
             return None
 
     @property
-    def price(self) -> float:
+    def price(self) -> Optional[float]:
         try:
             return float(
                 self.get_value_from_parsed_info('Price').split(",")[0][1:]
@@ -160,7 +160,7 @@ class WineReviewPage(object):
             return None
 
     @property
-    def designation(self) -> Union[str, None]:
+    def designation(self) -> Optional[str]:
         try:
             return self.get_value_from_parsed_info('Designation')
         except KeyError:
@@ -168,15 +168,15 @@ class WineReviewPage(object):
             return None
 
     @property
-    def variety(self) -> str:
+    def variety(self) -> Optional[str]:
         return self.get_value_from_parsed_info('Variety')
 
     @property
-    def appellation(self) -> str:
+    def appellation(self) -> Optional[str]:
         return self.get_value_from_parsed_info('Appellation')
 
     @property
-    def winery(self) -> str:
+    def winery(self) -> Optional[str]:
         return self.get_value_from_parsed_info('Winery')
 
     @property
@@ -188,7 +188,7 @@ class WineReviewPage(object):
             return None
 
     @property
-    def bottle_size(self) -> int:
+    def bottle_size(self) -> Optional[int]:
         try:
             return float(
                 self.get_value_from_parsed_info('Bottle Size').split(" ")[0]
@@ -197,19 +197,19 @@ class WineReviewPage(object):
             return None
 
     @property
-    def category(self) -> str:
+    def category(self) -> Optional[str]:
         return self.get_value_from_parsed_info('Category')
 
     @property
-    def author_name(self) -> str:
+    def author_name(self) -> Optional[str]:
         return self.get_value_from_parsed_info('review.author.name')
 
     @property
-    def review_body(self) -> str:
+    def review_body(self) -> Optional[str]:
         return self.get_value_from_parsed_info('review.reviewBody')
 
     @property
-    def price_per_milliliter(self) -> float:
+    def price_per_milliliter(self) -> Optional[float]:
         if self.price is None or self.bottle_size is None:
             return None
         return self.price / self.bottle_size
@@ -230,7 +230,7 @@ class WineReviewPage(object):
                 self.flags.append(4)
             self.scraped_info[potential_key] = r.find('div', {'class': 'info'}).find('span').text
 
-    def _get_json_post_metadata(self):
+    def _get_json_post_metadata(self) -> None:
         unwieldy_json = json.loads(
             self
             .content
@@ -265,7 +265,7 @@ class WineReviewPage(object):
             .attrs['content']
         )
 
-    def _get_vintage_from_card_title(self):
+    def _get_vintage_from_card_title(self) -> None:
         yearlike_in_title = year_finder.findall(self.card.title)
         if len(yearlike_in_title) > 0:
             if len(yearlike_in_title) > 1:
@@ -279,15 +279,16 @@ class WineReviewPage(object):
         self.scraped_info['vintage'] = int(yearlike_in_title[0])
 
     @classmethod
-    def _get_all_properties(cls):
+    def _get_all_properties(cls) -> List[str]:
         return sorted([
             k for k, v in vars(cls).items() if isinstance(v, property)
         ])
 
-    def _get_properties_and_values(self):
+    def _get_properties_and_values(self) -> Dict[str, Any]:
         return {
             k: getattr(self, k) for k in self._get_all_properties()
         }
+
 
 class AttributeRetriever(object):
 
