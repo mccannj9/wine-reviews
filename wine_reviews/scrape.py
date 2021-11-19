@@ -137,12 +137,18 @@ class WineReviewPage(object):
     
     # change this to content being extracted to scraped info
     @property
-    def vintage(self) -> int:
-        return self.get_value_from_parsed_info('vintage')
+    def vintage(self) -> Optional[int]:
+        try:
+            return int(self.get_value_from_parsed_info('vintage'))
+        except ValueError:
+            return None
 
     @property
-    def rating(self) -> int:
-        return int(self.get_value_from_parsed_info('rating'))
+    def rating(self) -> Optional[int]:
+        try:
+            return int(self.get_value_from_parsed_info('rating'))
+        except ValueError:
+            return None
 
     @property
     def price(self) -> float:
@@ -174,13 +180,21 @@ class WineReviewPage(object):
         return self.get_value_from_parsed_info('Winery')
 
     @property
-    def alcohol(self) -> float:
+    def alcohol(self) -> Optional[float]:
         # don't include percent sign
-        return float(self.get_value_from_parsed_info('Alcohol')[:-1])
+        try:
+            return float(self.get_value_from_parsed_info('Alcohol')[:-1])
+        except ValueError:
+            return None
 
     @property
     def bottle_size(self) -> int:
-        return float(self.get_value_from_parsed_info('Bottle Size').split(" ")[0])
+        try:
+            return float(
+                self.get_value_from_parsed_info('Bottle Size').split(" ")[0]
+            )
+        except ValueError:
+            return None
 
     @property
     def category(self) -> str:
@@ -196,7 +210,7 @@ class WineReviewPage(object):
 
     @property
     def price_per_milliliter(self) -> float:
-        if self.price is None:
+        if self.price is None or self.bottle_size is None:
             return None
         return self.price / self.bottle_size
 
