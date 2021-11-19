@@ -1,19 +1,15 @@
 import abc
-import glob
-import itertools
-import os
-import re
-import json
 import hashlib
+import json
+import re
 
 from typing import Tuple, Dict, Optional, List, Union
-from dataclasses import dataclass
 
 import requests
 from bs4 import BeautifulSoup
 
 import pandas
-from tqdm import tqdm, tqdm_pandas
+from tqdm import tqdm
 
 tqdm.pandas()
 
@@ -278,21 +274,6 @@ class WineReviewPage(object):
         return {
             k: getattr(self, k) for k in self._get_all_properties()
         }
-
-
-@dataclass
-class WineReview:
-    title: str
-    category: str # wine type: red, white, rosee
-    rating: int # 0-100
-    price: float # in dollars, import tax?
-    appellation: str # valley?
-    region: str # country/state
-    link: str # link to review
-    author: str # first, last of review author
-    date: str # date of review publication
-    year: str # year of wine
-    body: str # body of review
 
 class AttributeRetriever(object):
 
