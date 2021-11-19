@@ -4,6 +4,7 @@ import itertools
 import os
 import re
 import json
+import hashlib
 
 from typing import Tuple, Dict, Optional, List, Union
 from dataclasses import dataclass
@@ -61,7 +62,7 @@ class WineReviewScraper(object):
     def download_reviews_page(self) -> requests.models.Response:
         with requests.Session() as sesh:
             return sesh.get(self.download_link, headers=HEADERS)
-    
+
     def parse_all_review_cards(self) -> pandas.DataFrame:
         response = self.download_reviews_page()
         response_soup = BeautifulSoup(response.content, 'html.parser')
@@ -74,10 +75,10 @@ class WineReviewScraper(object):
             }
             observation['link'] = card.find("a", {'class': 'review-listing'})['href']
             review_cards_data.append(observation)
-        
+
         return pandas.DataFrame(review_cards_data)
     
-    def parse_review_page(self) -> pandas.DataFrame:
+    def parse_review_pages(self) -> pandas.DataFrame:
         review_cards = self.parse_all_review_cards()
         wine_review_pages = review_cards.progress_apply(
             lambda card: WineReviewPage(card), axis=1
@@ -102,6 +103,11 @@ class WineReviewPage(object):
 
         self.content = BeautifulSoup(self.response.content, 'html.parser')
 
+        # use sha hash to check for duplicate entries
+        self.scraped_info['sha512_hash'] = hashlib.sha512(
+            str(self.content).encode(self.response.encoding)
+        )
+
         # add info scraped from wine review page
         self._get_primary_info()
         self._get_secondary_info()
@@ -116,6 +122,10 @@ class WineReviewPage(object):
             return self.scraped_info[key]
         except KeyError:
             return None
+
+    @property
+    def sha512_hash(self) -> str:
+        return self.get_value_from_parsed_info('sha512_hash').digest()
 
     @property
     def link(self) -> str:
@@ -140,7 +150,12 @@ class WineReviewPage(object):
 
     @property
     def price(self) -> float:
-        return float(self.get_value_from_parsed_info('Price').split(",")[0][1:])
+        try:
+            return float(
+                self.get_value_from_parsed_info('Price').split(",")[0][1:]
+            )
+        except ValueError:
+            return None
 
     @property
     def designation(self) -> Union[str, None]:
@@ -185,6 +200,8 @@ class WineReviewPage(object):
 
     @property
     def price_per_milliliter(self) -> float:
+        if self.price is None:
+            return None
         return self.price / self.bottle_size
 
     def _get_primary_info(self) -> None:

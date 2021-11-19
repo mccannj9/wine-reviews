@@ -44,5 +44,6 @@ if __name__ == "__main__":
 
     data = pandas.DataFrame()
     for page_num in range(args.pages_start, args.pages_end + 1):
-        scraper = WineReviewScraper(page_num)
-        data.append(scraper.parse_review_page())
+        print(f"Scraping page number {page_num}")
+        scraper = WineReviewScraper(page_num, 5)
+        data = data.append(scraper.parse_review_pages())
