@@ -15,6 +15,7 @@ wine_reviews_base = declarative_base()
 class WineReviews(wine_reviews_base):
     __tablename__ = "wine_reviews"
 
+    id = Column(Integer, primary_key=True)
     alcohol = Column(Float)
     appellation = Column(String)
     author_name = Column(String)
@@ -27,7 +28,7 @@ class WineReviews(wine_reviews_base):
     price_per_milliliter = Column(Float)
     rating = Column(Integer)
     review_body = Column(String)
-    sha512_hash = Column(String, primary_key=True)
+    sha512_hash = Column(String)
     title = Column(String)
     variety = Column(String)
     vintage = Column(Integer)
