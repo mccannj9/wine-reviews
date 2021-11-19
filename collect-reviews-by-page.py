@@ -1,11 +1,18 @@
 #! /usr/bin/env python3
 
 import argparse
+import os
 import sys
 
 import pandas
 
+from sqlalchemy import create_engine
+
 from wine_reviews.scrape import WineReviewScraper
+from wine_reviews.data_models import wine_reviews_base, WineReviews
+
+script_directory_path = os.path.dirname(os.path.abspath(__file__))
+default_sqlite_path = f"{script_directory_path}/wine-reviews.db"
 
 if __name__ == "__main__":
 
@@ -29,7 +36,15 @@ if __name__ == "__main__":
         help="Last page to download wine reviews (>= --pages-start)"
     )
 
+    parser.add_argument(
+        "--sqlite-path", type=str, required=False, default=default_sqlite_path,
+        help="Path to sqlite database for wine reviews dumps"
+    )
+
     args = parser.parse_args()
+
+    engine = create_engine(f"sqlite:///{args.sqlite_path}")
+    wine_reviews_base.metadata.create_all(engine)
 
     # do some argument checking
     if args.pages_start > 0:
@@ -47,3 +62,7 @@ if __name__ == "__main__":
         print(f"Scraping page number {page_num}")
         scraper = WineReviewScraper(page_num, 5)
         data = data.append(scraper.parse_review_pages())
+    
+    data.to_sql(
+        WineReviews.__tablename__, con=engine, if_exists='append', index=False
+    )
