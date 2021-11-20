@@ -43,7 +43,7 @@ class WineReviewScraper(object):
     def __init__(
         self,
         page_number: int,
-        wait_between_requests: float
+        wait_between_requests: float = 0
     ) -> None:
         self.page_number = page_number
         self.wait_between_requests = wait_between_requests

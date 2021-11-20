@@ -3,8 +3,7 @@
 import argparse
 import os
 import sys
-
-import pandas
+import time
 
 from sqlalchemy import create_engine
 
@@ -14,8 +13,7 @@ from wine_reviews.data_models import wine_reviews_base, WineReviews
 script_directory_path = os.path.dirname(os.path.abspath(__file__))
 default_sqlite_path = f"{script_directory_path}/wine-reviews.db"
 
-# failed on 127 bc of connection problem (maybe too many requests)
-last_page_number_crawled = 126
+last_page_number_crawled = 200
 
 if __name__ == "__main__":
 
@@ -44,6 +42,11 @@ if __name__ == "__main__":
         help="Path to sqlite database for wine reviews dumps"
     )
 
+    parser.add_argument(
+        "--wait-time", type=int, required=False, default=1,
+        help="Time to politely wait between page scrapes"
+    )
+
     args = parser.parse_args()
 
     engine = create_engine(f"sqlite:///{args.sqlite_path}")
@@ -60,7 +63,6 @@ if __name__ == "__main__":
             """
         )
 
-    # data = pandas.DataFrame()
     for page_num in range(args.pages_start, args.pages_end + 1):
         print(f"Scraping page number {page_num}")
         scraped_data = (
@@ -79,3 +81,5 @@ if __name__ == "__main__":
                     index=False
                 )
             )
+        print(f"Sleeping for {args.wait_time} secs before next scrape")
+        time.sleep(args.wait_time)
