@@ -2,7 +2,7 @@
 name = "wine-reviews"
 version = "0.1.0"
 description = ""
-authors = ["Jamie McCann <j.mccann@solgenium.com>"]
+authors = ["Jamie McCann <jamie.mccann@gmx.at>"]
 
 [tool.poetry.dependencies]
 python = ">=3.8,<3.11"
