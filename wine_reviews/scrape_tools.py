@@ -12,6 +12,9 @@ import requests
 from bs4 import BeautifulSoup
 from tqdm import tqdm
 
+from wine_reviews import crawl_delay_config
+
+
 tqdm.pandas()
 
 HEADERS = {
@@ -87,7 +90,7 @@ class WineReviewScraper(object):
 
 
 class WineReviewPage(object):
-    def __init__(self, card: pandas.Series, crawl_delay: int = 5) -> None:
+    def __init__(self, card: pandas.Series, crawl_delay: int = crawl_delay_config) -> None:
         self.card = card
         self.crawl_delay = crawl_delay
         self.flags: List[int] = []
