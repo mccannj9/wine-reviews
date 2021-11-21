@@ -5,6 +5,8 @@ import os
 import sys
 import time
 
+import pandas
+
 from sqlalchemy import create_engine
 
 from wine_reviews.scrape_tools import WineReviewScraper
@@ -83,3 +85,8 @@ if __name__ == "__main__":
             )
         print(f"Sleeping for {args.wait_time} secs before next scrape")
         time.sleep(args.wait_time)
+
+    # load table and drop duplicates for convenience checking if running from ipython
+    table = pandas.read_sql_table(WineReviews.__tablename__, con=engine)
+    data = table.drop_duplicates('sha512_hash')
+    
