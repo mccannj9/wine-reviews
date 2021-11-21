@@ -81,6 +81,12 @@ class WineReviewScraper(object):
     
     def parse_review_pages(self) -> pandas.DataFrame:
         review_cards = self.parse_all_review_cards()
+
+        # No cards parsed, return empty... scrape script takes care of this
+        # Removes divide by zero warning from tqdm and pandas
+        if review_cards.empty:
+            return pandas.DataFrame([])
+
         wine_review_pages = review_cards.progress_apply(
             lambda card: WineReviewPage(card), axis=1
         )
