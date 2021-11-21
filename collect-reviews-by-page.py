@@ -89,4 +89,5 @@ if __name__ == "__main__":
     # load table and drop duplicates for convenience checking if running from ipython
     table = pandas.read_sql_table(WineReviews.__tablename__, con=engine)
     data = table.drop_duplicates('sha512_hash')
+    print(f"Number of duplicated entries {table.shape[0] - data.shape[0]}")
     
