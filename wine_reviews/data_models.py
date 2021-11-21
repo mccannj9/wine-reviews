@@ -22,6 +22,7 @@ class WineReviews(wine_reviews_base):
     date_published = Column(Date)
     designation = Column(String)
     link = Column(String)
+    page_number = Column(Integer)
     price = Column(Float)
     price_per_milliliter = Column(Float)
     rating = Column(Integer)

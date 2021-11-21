@@ -2,6 +2,7 @@ import abc
 import hashlib
 import json
 import re
+import time
 
 from typing import Any, Tuple, Dict, Optional, List
 
@@ -70,6 +71,7 @@ class WineReviewScraper(object):
                 obj: card.find(*card_objects[obj]).get_text() for obj in card_objects
             }
             observation['link'] = card.find("a", {'class': 'review-listing'})['href']
+            observation['page_number'] = self.page_number
             review_cards_data.append(observation)
 
         return pandas.DataFrame(review_cards_data)
@@ -85,15 +87,19 @@ class WineReviewScraper(object):
 
 
 class WineReviewPage(object):
-    def __init__(self, card: pandas.Series) -> None:
+    def __init__(self, card: pandas.Series, crawl_delay: int = 5) -> None:
         self.card = card
+        self.crawl_delay = crawl_delay
         self.flags: List[int] = []
+
         # initialize scraped data from page, add link
         self.scraped_info: Dict[str, str] = {}
         # add info from card to scraped data
         self.scraped_info['link'] = self.card.link
+        self.scraped_info['page_number'] = self.card.page_number
         self.scraped_info['title'] = self.card.title
 
+        time.sleep(self.crawl_delay)
         with requests.Session() as sesh:
             self.response = sesh.get(self.link, headers=HEADERS)
 
@@ -118,6 +124,10 @@ class WineReviewPage(object):
             return self.scraped_info[key]
         except KeyError:
             return None
+
+    @property
+    def page_number(self) -> Optional[str]:
+        return self.get_value_from_parsed_info('page_number')
 
     @property
     def sha512_hash(self) -> Optional[str]:
