@@ -13,6 +13,8 @@ plotnine = "^0.8.0"
 SQLAlchemy = "^1.4.27"
 tqdm = "^4.62.3"
 bambi = "^0.6.3"
+fake-headers = "^1.0.2"
+free-proxy = "^1.0.4"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
